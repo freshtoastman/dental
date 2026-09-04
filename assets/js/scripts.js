@@ -72,6 +72,9 @@
     if (table) {
       table.querySelectorAll('[data-day="' + d + '"]').forEach(function (el) { el.classList.add('is-today'); });
       table.querySelectorAll('td').forEach(function (td) { if (!td.querySelector('.slot')) td.classList.add('off'); });
+      /* 行動版可捲動時，把今日欄捲到第一欄旁邊 */
+      var wrap = table.parentNode, th = table.querySelector('thead th.is-today'), first = table.querySelector('thead th');
+      if (wrap && th && first && wrap.scrollWidth > wrap.clientWidth) wrap.scrollLeft = Math.max(0, th.offsetLeft - first.offsetWidth);
     }
   }
 
@@ -185,6 +188,30 @@
     });
   }
 
-  function init() { initToday(); initName(); initSplit(); initMenu(); initExcerpt(); initAnchorJump(); initSvcMore(); initBA(); initCaseToggle(); }
+  /* ---------- 服務項目：圖卡橫排 → 內容超出時顯示滑動提示 ---------- */
+  function initSvcCards() {
+    document.querySelectorAll('[data-svk]').forEach(function (row) {
+      var hint = row.parentNode.querySelector('.svk-hint'); if (!hint) return;
+      var upd = function () { hint.style.display = row.scrollWidth > row.clientWidth + 4 ? 'block' : 'none'; };
+      upd(); window.addEventListener('resize', upd);
+      row.addEventListener('scroll', function () { if (row.scrollLeft + row.clientWidth >= row.scrollWidth - 4) hint.style.display = 'none'; }, { passive: true });
+    });
+  }
+
+  /* ---------- 服務項目：分頁展示 ---------- */
+  function initSvcTabs() {
+    document.querySelectorAll('[data-svt]').forEach(function (svt) {
+      var tabs = svt.querySelectorAll('[data-svt-tab]'), panels = svt.querySelectorAll('[data-svt-panel]');
+      tabs.forEach(function (tab) {
+        tab.addEventListener('click', function () {
+          var k = tab.getAttribute('data-svt-tab');
+          tabs.forEach(function (x) { var on = x === tab; x.classList.toggle('is-on', on); x.setAttribute('aria-selected', on ? 'true' : 'false'); });
+          panels.forEach(function (p) { p.hidden = p.getAttribute('data-svt-panel') !== k; });
+        });
+      });
+    });
+  }
+
+  function init() { initToday(); initName(); initSplit(); initMenu(); initExcerpt(); initAnchorJump(); initSvcMore(); initBA(); initCaseToggle(); initSvcTabs(); initSvcCards(); }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
